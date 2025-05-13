@@ -17,11 +17,11 @@ int main() {
 	while(true)
 	{
 		currCommand = parseInput();
-		for(int i = 0; i < sizeof(*currCommand->argv); i++) {
-			if(currCommand->argv[i] != NULL) {
-				printf("Current command: %s\n", currCommand->argv[i]);
-			}
-		}
+
+        // Skip blank lines and comment lines
+        if(currCommand == NULL) {
+            continue;
+        }
 	}
 
 	return EXIT_SUCCESS;
