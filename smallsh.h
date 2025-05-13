@@ -19,3 +19,4 @@ struct commandLine
 
 // Function prototypes
 struct commandLine *parseInput();
+void exitShell();

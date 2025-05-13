@@ -58,3 +58,15 @@ struct commandLine *parseInput() {
 
 	return currCommand;
 }
+
+/*
+ * Function: exitShell
+ *      This function kills all processes and jobs currently running in the shell, then exits the shell.
+ * 
+ *      returns: none
+ */
+void exitShell() {
+    // Kill all processes and jobs
+
+    return;
+} 

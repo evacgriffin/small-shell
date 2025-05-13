@@ -22,6 +22,12 @@ int main() {
         if(currCommand == NULL) {
             continue;
         }
+
+        // Exit shell
+        if(!strcmp(currCommand->argv[0], "exit")) {
+            exitShell();
+            break;
+        }
 	}
 
 	return EXIT_SUCCESS;
