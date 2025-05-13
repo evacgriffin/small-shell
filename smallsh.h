@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #define INPUT_LENGTH 2048
 #define MAX_ARGS 512
@@ -20,3 +22,4 @@ struct commandLine
 // Function prototypes
 struct commandLine *parseInput();
 void exitShell();
+void executeCommand(struct commandLine *currCommand);

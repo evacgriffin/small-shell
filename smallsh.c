@@ -28,6 +28,18 @@ int main() {
             exitShell();
             break;
         }
+
+        // Handle built-in commands
+        if(!strcmp(currCommand->argv[0], "status")) {
+            // Handle status
+            continue;
+        } else if(!strcmp(currCommand->argv[0], "cd")) {
+            // Handle cd
+            continue;
+        }
+
+        // Execute other commands
+        executeCommand(currCommand);
 	}
 
 	return EXIT_SUCCESS;
