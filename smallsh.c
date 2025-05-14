@@ -16,16 +16,18 @@ int main() {
 
 	while(true)
 	{
-		currCommand = parseInput();
+        currCommand = parseInput();
+        // TODO: Use this for background processes
+        // while((pid = waitpid(-1, &wstatus, WNOHANG)) > 0) {
+        // }
 
         // Skip blank lines and comment lines
         if(currCommand == NULL) {
             continue;
         }
 
-        // Exit shell
+        // Exit the shell
         if(!strcmp(currCommand->argv[0], "exit")) {
-            exitShell();
             break;
         }
 
@@ -34,7 +36,7 @@ int main() {
             // Handle status
             continue;
         } else if(!strcmp(currCommand->argv[0], "cd")) {
-            // Handle cd
+            changeWorkingDirectory(currCommand);
             continue;
         }
 

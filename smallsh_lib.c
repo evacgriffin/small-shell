@@ -60,13 +60,41 @@ struct commandLine *parseInput() {
 }
 
 /*
- * Function: exitShell
- *      This function kills all processes and jobs currently running in the shell, then exits the shell.
+ * Function: changeWorkingDirectory
+ *      This function handles the cd command and chances the current working directory.
  * 
+ *      receives: pointer to current command structure
  *      returns: none
  */
-void exitShell() {
-    // Kill all processes and jobs
+void changeWorkingDirectory(struct commandLine *currCommand) {
+    char *homeDirectoryVarName = "HOME";
+    if(currCommand->argc == 1) {
+        // No arguments: Change directory to HOME
+        chdir(getenv(homeDirectoryVarName));
+    } else {
+        // Get the current working directory
+        char currWorkingDirectory[INPUT_LENGTH];
+        size_t directoryNameSize = sizeof(currWorkingDirectory);
+        getcwd(currWorkingDirectory, directoryNameSize);
+
+        // Check if path is absolute or relative
+        if(!strncmp(currWorkingDirectory, currCommand->argv[1], strlen(currWorkingDirectory))) {
+            // Change working directory to specified absolute path
+            chdir(currCommand->argv[1]);
+        } else {
+            // Path is relative
+            // If specified path does not begin with a /, append a / to the curr working dir
+            if((currCommand->argv[1])[0] != '/') {
+                int length = strlen(currWorkingDirectory);
+                currWorkingDirectory[length] = '/';
+                currWorkingDirectory[length + 1] = '\0';
+            }
+            // Concatenate curr working dir and specified relative path
+            strcat(currWorkingDirectory, currCommand->argv[1]);
+            // Change working directory to this new path
+            chdir(currWorkingDirectory);
+        }
+    }
 
     return;
 }
@@ -81,6 +109,7 @@ void exitShell() {
  *      URL: https://canvas.oregonstate.edu/courses/1999732/pages/exploration-process-api-executing-a-new-program?module_item_id=25329382
  *      Retrieved on: 05/13/2025
  * 
+ *      receives: pointer to current command structure
  *      returns: none
  */
 void executeCommand(struct commandLine *currCommand) {
@@ -95,15 +124,13 @@ void executeCommand(struct commandLine *currCommand) {
         break;
     case 0:
         // Child process branch
-        //printf("Child PID: %d executing command... \n", getpid());
         execvp(currCommand->argv[0], currCommand->argv);
         perror("execvp error");
-        exit(2);
+        exit(1);
         break;
     default:
-        // Parent process branch
+        // Parent process branch, parent waits for child to finish
         spawnPid = waitpid(spawnPid, &childStatus, 0);
-        //printf("Parent PID: %d | Terminated child with PID %d.\n", getpid(), spawnPid);
         break;
     }
 }

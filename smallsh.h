@@ -21,5 +21,5 @@ struct commandLine
 
 // Function prototypes
 struct commandLine *parseInput();
-void exitShell();
+void changeWorkingDirectory(struct commandLine *currCommand);
 void executeCommand(struct commandLine *currCommand);
