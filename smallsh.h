@@ -1,4 +1,5 @@
 // Header file for smallsh.c
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -22,4 +23,4 @@ struct commandLine
 // Function prototypes
 struct commandLine *parseInput();
 void changeWorkingDirectory(struct commandLine *currCommand);
-void executeCommand(struct commandLine *currCommand);
+int executeCommand(struct commandLine *currCommand);

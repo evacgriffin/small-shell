@@ -13,6 +13,7 @@
 
 int main() {
     struct commandLine *currCommand;
+    int lastExitStatus = 0;
 
 	while(true)
 	{
@@ -33,7 +34,7 @@ int main() {
 
         // Handle built-in commands
         if(!strcmp(currCommand->argv[0], "status")) {
-            // Handle status
+            printf("exit value %d\n", lastExitStatus);
             continue;
         } else if(!strcmp(currCommand->argv[0], "cd")) {
             changeWorkingDirectory(currCommand);
@@ -41,7 +42,7 @@ int main() {
         }
 
         // Execute other commands
-        executeCommand(currCommand);
+        lastExitStatus = executeCommand(currCommand);
 	}
 
 	return EXIT_SUCCESS;

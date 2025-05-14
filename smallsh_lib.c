@@ -109,23 +109,62 @@ void changeWorkingDirectory(struct commandLine *currCommand) {
  *      URL: https://canvas.oregonstate.edu/courses/1999732/pages/exploration-process-api-executing-a-new-program?module_item_id=25329382
  *      Retrieved on: 05/13/2025
  * 
+ *      Course Page: Exploration: Processes and I/O
+ *      Title: Example: Redirecting both Stdin and Stdout
+ *      URL: https://canvas.oregonstate.edu/courses/1999732/pages/exploration-processes-and-i-slash-o?module_item_id=25329390
+ *      Retrieved on: 05/13/2025
+ * 
  *      receives: pointer to current command structure
- *      returns: none
+ *      returns: exit status or terminating signal as an integer
  */
-void executeCommand(struct commandLine *currCommand) {
+int executeCommand(struct commandLine *currCommand) {
     int childStatus;
+    int exitStatus = 0;
     // Fork a new child process
     pid_t spawnPid = fork();
 
     switch(spawnPid) {
     case -1:
         perror("fork() failed\n");
+        exitStatus = 1;
         exit(1);
         break;
     case 0:
         // Child process branch
+        // Open input file
+        int result;
+        if(currCommand->inputFile) {
+            int inputFileDescriptor = open(currCommand->inputFile, O_RDONLY);
+            if(inputFileDescriptor == -1) {
+                perror("input file open()");
+                exit(1);
+            }
+            // Redirect stdin to the input file
+            result = dup2(inputFileDescriptor, 0);
+            if(result == -1) {
+                perror("input file dup2()");
+                exit(1);
+            }
+        }
+
+        // Open output file
+        if(currCommand->outputFile) {
+            int outputFileDescriptor = open(currCommand->outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            if(outputFileDescriptor == -1) {
+                perror("output file open()");
+                exit(1);
+            }
+            // Redirect stdout to the output file
+            result = dup2(outputFileDescriptor, 1);
+            if(result == -1) {
+                perror("output file dup2()");
+                exit(1);
+            }
+        }
+
         execvp(currCommand->argv[0], currCommand->argv);
         perror("execvp error");
+        exitStatus = 1;
         exit(1);
         break;
     default:
@@ -133,4 +172,6 @@ void executeCommand(struct commandLine *currCommand) {
         spawnPid = waitpid(spawnPid, &childStatus, 0);
         break;
     }
+
+    return exitStatus;
 }
