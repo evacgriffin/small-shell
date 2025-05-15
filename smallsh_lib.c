@@ -118,15 +118,14 @@ void changeWorkingDirectory(struct commandLine *currCommand) {
  *      returns: exit status or terminating signal as an integer
  */
 int executeCommand(struct commandLine *currCommand) {
-    int childStatus;
     int exitStatus = 0;
+
     // Fork a new child process
     pid_t spawnPid = fork();
 
     switch(spawnPid) {
     case -1:
         perror("fork() failed\n");
-        exitStatus = 1;
         exit(1);
         break;
     case 0:
@@ -136,7 +135,8 @@ int executeCommand(struct commandLine *currCommand) {
         if(currCommand->inputFile) {
             int inputFileDescriptor = open(currCommand->inputFile, O_RDONLY);
             if(inputFileDescriptor == -1) {
-                perror("input file open()");
+                printf("cannot open %s for input\n", currCommand->inputFile);
+                fflush(stdout);
                 exit(1);
             }
             // Redirect stdin to the input file
@@ -162,14 +162,52 @@ int executeCommand(struct commandLine *currCommand) {
             }
         }
 
+        // Confirm background process
+        if(currCommand->isBackground) {
+            printf("background pid is %d\n", getpid());
+            fflush(stdout);
+
+            // Redirect I/O for background process if no files specified by the user
+            if(!(currCommand->inputFile)) {
+                int bgInput = open("/dev/null", O_RDONLY);
+                if(bgInput == -1) {
+                    perror("bg input open()");
+                    exit(1);
+                }
+                result = dup2(bgInput, 0);
+                if(result == -1) {
+                    perror("bg input dup2()");
+                    exit(1);
+                }
+            }
+
+            if(!(currCommand->outputFile)) {
+                int bgOutput = open("/dev/null", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                if(bgOutput == -1) {
+                    perror("bg output open()");
+                    exit(1);
+                }
+                result = dup2(bgOutput, 1);
+                if(result == -1) {
+                    perror("bg output dup2()");
+                    exit(1);
+                }
+            }
+        }
+
+        // Execute command
         execvp(currCommand->argv[0], currCommand->argv);
-        perror("execvp error");
-        exitStatus = 1;
+        printf("%s: no such file or directory\n", currCommand->argv[0]);
+        fflush(stdout);
         exit(1);
         break;
     default:
-        // Parent process branch, parent waits for child to finish
-        spawnPid = waitpid(spawnPid, &childStatus, 0);
+        // Parent process branch
+        // Parent does not wait for a background process
+        if(!(currCommand->isBackground)) {
+            // Parent waits for child to finish
+            spawnPid = waitpid(spawnPid, &exitStatus, 0);
+        }
         break;
     }
 
