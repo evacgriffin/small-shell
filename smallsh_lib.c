@@ -11,9 +11,10 @@
  *      URL: https://canvas.oregonstate.edu/courses/1999732/assignments/9997827?module_item_id=25329392
  *      Retrieved on: 05/13/2025
  * 
+ *      receives: boolean indicating which mode the shell is in
  *      returns: pointer to new commandLine structure or NULL to skip the line
  */
-struct commandLine *parseInput() {
+struct commandLine *parseInput(bool foregroundMode) {
 	char input[INPUT_LENGTH];
 	struct commandLine *currCommand = (struct commandLine *) calloc(1, sizeof(struct commandLine));
 
@@ -55,6 +56,11 @@ struct commandLine *parseInput() {
 		}
 		token = strtok(NULL," \n");
 	}
+
+    // Foreground mode enabled
+    if(foregroundMode) {
+        currCommand->isBackground = false;
+    }
 
 	return currCommand;
 }
@@ -114,6 +120,11 @@ void changeWorkingDirectory(struct commandLine *currCommand) {
  *      URL: https://canvas.oregonstate.edu/courses/1999732/pages/exploration-processes-and-i-slash-o?module_item_id=25329390
  *      Retrieved on: 05/13/2025
  * 
+ *      Course Page: Exploration: Signal Handling API
+ *      Title: Example: Custom Handlers for SIGINT, SIGUSR2, and Ignoring SIGTERM, etc.
+ *      URL: https://canvas.oregonstate.edu/courses/1999732/pages/exploration-signal-handling-api?module_item_id=25329389
+ *      Retrieved on: 05/19/2025
+ * 
  *      receives: pointer to current command structure
  *      returns: exit status or terminating signal as an integer
  */
@@ -130,6 +141,25 @@ int executeCommand(struct commandLine *currCommand) {
         break;
     case 0:
         // Child process branch
+
+        // All child processes ignore SIGTSTP
+        struct sigaction SIGTSTP_ignore = {0};
+        SIGTSTP_ignore.sa_handler = SIG_IGN;
+        sigaction(SIGTSTP, &SIGTSTP_ignore, NULL);
+
+        // SIGINT signal processing
+        if(currCommand->isBackground) {
+            // Background child ignores SIGINT
+            struct sigaction SIGINT_ignore = {0};
+            SIGINT_ignore.sa_handler = SIG_IGN;
+            sigaction(SIGINT, &SIGINT_ignore, NULL);
+        } else {
+            // Foreground child handles SIGINT with default action
+            struct sigaction SIGINT_default = {0};
+            SIGINT_default.sa_handler = SIG_DFL;
+            sigaction(SIGINT, &SIGINT_default, NULL);
+        }
+
         // Open input file
         int result;
         if(currCommand->inputFile) {
@@ -203,6 +233,7 @@ int executeCommand(struct commandLine *currCommand) {
         break;
     default:
         // Parent process branch
+
         // Parent does not wait for a background process
         if(!(currCommand->isBackground)) {
             // Parent waits for child to finish

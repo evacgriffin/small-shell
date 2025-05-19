@@ -1,5 +1,6 @@
 // Header file for smallsh.c
 #include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -21,6 +22,8 @@ struct commandLine
 };
 
 // Function prototypes
-struct commandLine *parseInput();
+void SIGTSTP_enterForegroundMode(int signo);
+void SIGTSTP_exitForegroundMode(int signo);
+struct commandLine *parseInput(bool foregroundMode);
 void changeWorkingDirectory(struct commandLine *currCommand);
 int executeCommand(struct commandLine *currCommand);
