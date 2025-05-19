@@ -238,6 +238,9 @@ int executeCommand(struct commandLine *currCommand) {
         if(!(currCommand->isBackground)) {
             // Parent waits for child to finish
             spawnPid = waitpid(spawnPid, &exitStatus, 0);
+            if(exitStatus != 0) {
+                printf("terminated by signal %d\n", WTERMSIG(exitStatus));
+            }
         }
         break;
     }
